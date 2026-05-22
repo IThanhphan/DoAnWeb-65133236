@@ -1,16 +1,25 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { createAxiosJWT } from "../../callAPI/createInstance";
+import { login } from "../../redux/userSlice";
+import { logoutUser } from "../../callAPI/authAPI";
 
 export default function HomeManager() {
   const userLogin = useSelector((state) => state.user?.currentUser);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  // State giả lập để chuyển đổi nhanh các tab chức năng trong tương lai
+  const axiosJWT = createAxiosJWT(userLogin, dispatch, login);
+
   const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     if (!userLogin) navigate("/login");
   });
+
+  const handleLogout = () => {
+    logoutUser(userLogin?.accessToken, dispatch, axiosJWT);
+  };
 
   // Dữ liệu giả lập (Mock data) hiển thị báo cáo nhanh
   const stats = [
@@ -178,7 +187,10 @@ export default function HomeManager() {
             <span className="text-sm text-slate-500 font-medium">
               📅 Ngày 20 tháng 05, 2026
             </span>
-            <button className="bg-rose-500 hover:bg-rose-600 text-white font-semibold text-sm px-4 py-2 rounded-lg transition-colors shadow-sm">
+            <button
+              className="bg-rose-500 hover:bg-rose-600 text-white font-semibold text-sm px-4 py-2 rounded-lg transition-colors shadow-sm"
+              onClick={handleLogout}
+            >
               Đăng xuất
             </button>
           </div>

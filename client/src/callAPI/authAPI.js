@@ -1,22 +1,37 @@
-import axios from "axios"
-import { apiName } from "../config/APIname"
-import { login } from "../redux/userSlice"
+import axios from "axios";
+import { apiName } from "../config/APIname";
+import { login, logout } from "../redux/userSlice";
 import { jwtDecode } from "jwt-decode";
 
-export const loginUser = async(user, dispatch, navigate) => {
+export const loginUser = async (user, dispatch, navigate) => {
   try {
     const res = await axios.post(`${apiName}/auth/login`, user, {
-      withCredentials: true
-    })
-    dispatch(login(res.data.result))
+      withCredentials: true,
+    });
+    dispatch(login(res.data.result));
 
-    const decodeToken = jwtDecode(res.data.result.accessToken)
+    const decodeToken = jwtDecode(res.data.result.accessToken);
 
-    if (decodeToken.role === "manager")
-      navigate("/manager")
-    else
-      navigate("/staff")
+    if (decodeToken.role === "manager") navigate("/manager");
+    else navigate("/staff");
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
+
+export const logoutUser = async (accessToken, dispatch, axiosJWT) => {
+  try {
+    console.log(axios);
+    await axiosJWT.post(
+      `${apiName}/auth/logout`,
+      {},
+      {
+        headers: { token: `Bearer ${accessToken}` },
+        withCredentials: true,
+      },
+    );
+    dispatch(logout());
+  } catch (error) {
+    console.log(error);
+  }
+};

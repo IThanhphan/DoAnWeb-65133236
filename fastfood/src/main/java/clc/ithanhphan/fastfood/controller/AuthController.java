@@ -37,6 +37,23 @@ public class AuthController {
                 .build();
     }
 
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(HttpServletResponse response) {
+
+        Cookie cookie = new Cookie("refreshToken", null);
+
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+
+        response.addCookie(cookie);
+
+        return ApiResponse.<Void>builder()
+                .message("Logout thành công")
+                .build();
+    }
+
     @PostMapping("/refresh")
     public ApiResponse<LoginResponse> refreshToken(
             HttpServletRequest request
