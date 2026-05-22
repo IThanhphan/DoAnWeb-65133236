@@ -1,17 +1,19 @@
 import { useState } from "react";
+import { loginUser } from "../../callAPI/authAPI";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  // State quản lý dữ liệu form đăng nhập
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
 
-  // State quản lý thông báo lỗi nếu đăng nhập thất bại
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Xử lý thay đổi dữ liệu trong ô input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -20,13 +22,11 @@ export default function Login() {
     }));
   };
 
-  // Xử lý sự kiện Submit Form Đăng nhập
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
     setIsLoading(true);
 
-    // Kiểm tra dữ liệu thô tại client
     if (!formData.username || !formData.password) {
       setErrorMessage("Vui lòng nhập đầy đủ Tài khoản và Mật khẩu!");
       setIsLoading(false);
@@ -34,51 +34,7 @@ export default function Login() {
     }
 
     try {
-      // 📝 GỢI Ý LOGIC KẾT NỐI API BACKEND SAU NÀY:
-      /*
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password // Backend sẽ so sánh với password_hash trong DB
-        })
-      });
-      const data = await response.json();
-      
-      if (response.ok) {
-         // Lưu Token và thông tin User vào localStorage/Context
-         localStorage.setItem('token', data.token);
-         
-         // Điều hướng dựa trên Phân hệ 1 (Roles) trong CSDL của bạn:
-         if (data.user.roleName === 'manager') {
-            window.location.href = '/manager-dashboard';
-         } else if (data.user.roleName === 'staff') {
-            window.location.href = '/staff-pos';
-         }
-      } else {
-         setErrorMessage(data.message || 'Tài khoản hoặc mật khẩu không chính xác!');
-      }
-      */
-
-      // --- GIẢ LẬP ĐỂ TEST GIAO DIỆN TẠI FRONTEND ---
-      setTimeout(() => {
-        setIsLoading(false);
-        if (formData.username === "admin" && formData.password === "123456") {
-          alert("Đăng nhập thành công với quyền QUẢN LÝ (manager)!");
-          // window.location.href = '/manager'; // Điều hướng giả lập
-        } else if (
-          formData.username === "nv01" &&
-          formData.password === "123456"
-        ) {
-          alert("Đăng nhập thành công với quyền NHÂN VIÊN (staff)!");
-          // window.location.href = '/staff'; // Điều hướng giả lập
-        } else {
-          setErrorMessage(
-            "Tài khoản hoặc mật khẩu không chính xác! (Gợi ý test: admin/123456 hoặc nv01/123456)",
-          );
-        }
-      }, 1000);
+      loginUser(formData, dispatch, navigate)
     } catch (error) {
       console.log(error);
       setErrorMessage("Mất kết nối tới máy chủ hệ thống!");

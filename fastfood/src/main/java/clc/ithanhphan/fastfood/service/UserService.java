@@ -6,6 +6,7 @@ import clc.ithanhphan.fastfood.model.Role;
 import clc.ithanhphan.fastfood.model.User;
 import clc.ithanhphan.fastfood.repository.RoleRepository;
 import clc.ithanhphan.fastfood.repository.UserRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     @Transactional
+    @PreAuthorize("hasRole('MANAGER')")
     public User createStaffUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Tên đăng nhập này đã tồn tại!");

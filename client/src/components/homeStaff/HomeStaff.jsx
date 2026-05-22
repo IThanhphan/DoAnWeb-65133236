@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function HomeStaff() {
+  const userLogin = useSelector((state) => state.user?.currentUser);
+  const navigate = useNavigate();
   // State quản lý danh mục món ăn đang chọn
   const [currentCategory, setCurrentCategory] = useState("Burger");
+
+  useEffect(() => {
+    if (!userLogin) navigate("/login");
+  });
 
   // State giả lập giỏ hàng hiện tại khi click chọn món tại bàn
   const [cart] = useState([

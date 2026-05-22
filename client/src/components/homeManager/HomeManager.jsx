@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function HomeManager() {
+  const userLogin = useSelector((state) => state.user?.currentUser);
+  const navigate = useNavigate();
   // State giả lập để chuyển đổi nhanh các tab chức năng trong tương lai
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    if (!userLogin) navigate("/login");
+  });
 
   // Dữ liệu giả lập (Mock data) hiển thị báo cáo nhanh
   const stats = [

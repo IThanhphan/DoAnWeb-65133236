@@ -23,10 +23,7 @@ public class UserController {
     public ApiResponse<User> createStaff(@Valid @RequestBody UserCreationRequest request) {
         User createdUser = userService.createStaffUser(request);
 
-        createdUser.setPasswordHash(null);
-
         return ApiResponse.<User>builder()
-                .code(1000)
                 .message("Tạo tài khoản nhân viên thành công!")
                 .result(createdUser)
                 .build();
