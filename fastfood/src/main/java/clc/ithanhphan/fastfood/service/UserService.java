@@ -6,6 +6,7 @@ import clc.ithanhphan.fastfood.model.Role;
 import clc.ithanhphan.fastfood.model.User;
 import clc.ithanhphan.fastfood.repository.RoleRepository;
 import clc.ithanhphan.fastfood.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,17 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
-    @Autowired
     private UserRepository userRepository;
-
-    @Autowired
     private RoleRepository roleRepository;
-
-    @Autowired
     private UserMapper userMapper;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Transactional
