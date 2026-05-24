@@ -48,6 +48,7 @@ public class AuthService {
         response.addCookie(cookie);
 
         return LoginResponse.builder()
+                .fullName(user.getFullName())
                 .accessToken(accessToken)
                 .build();
     }

@@ -22,7 +22,7 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
     setIsLoading(true);
@@ -34,10 +34,15 @@ export default function Login() {
     }
 
     try {
-      loginUser(formData, dispatch, navigate);
+      await loginUser(formData, dispatch, navigate);
     } catch (error) {
       console.log(error);
-      setErrorMessage("Mất kết nối tới máy chủ hệ thống!");
+      if (error.response && error.response.status === 401) {
+        setErrorMessage("Tài khoản hoặc Mật khẩu không chính xác!");
+      } else {
+        setErrorMessage("Mất kết nối tới máy chủ hệ thống!");
+      }
+    } finally {
       setIsLoading(false);
     }
   };

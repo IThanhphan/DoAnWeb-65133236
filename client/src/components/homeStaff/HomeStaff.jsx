@@ -19,8 +19,12 @@ export default function HomeStaff() {
   const [paymentMethod, setPaymentMethod] = useState("cash"); // Phương thức thanh toán đang chọn
 
   useEffect(() => {
-    if (!userLogin) navigate("/login");
-  });
+    if (!userLogin) {
+      navigate("/login");
+    } else if (userLogin.role !== "staff") {
+      navigate("/manager");
+    }
+  }, [userLogin, navigate]);
 
   // Hàm xử lý đăng xuất hệ thống
   const handleLogout = () => {
