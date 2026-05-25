@@ -3,12 +3,14 @@ package clc.ithanhphan.fastfood.service;
 import clc.ithanhphan.fastfood.dto.request.ProductCreationRequest;
 import clc.ithanhphan.fastfood.dto.request.ProductUpdateRequest;
 import clc.ithanhphan.fastfood.dto.response.ProductResponse;
+import clc.ithanhphan.fastfood.exceptions.BusinessException;
 import clc.ithanhphan.fastfood.exceptions.DuplicateResourceException;
 import clc.ithanhphan.fastfood.exceptions.ResourceNotFoundException;
 import clc.ithanhphan.fastfood.mapper.ProductMapper;
 import clc.ithanhphan.fastfood.model.Category;
 import clc.ithanhphan.fastfood.model.Product;
 import clc.ithanhphan.fastfood.repository.CategoryRepository;
+import clc.ithanhphan.fastfood.repository.OrderItemRepository;
 import clc.ithanhphan.fastfood.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,8 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     private final ProductMapper productMapper;
+
+    private final OrderItemRepository orderItemRepository;
 
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
@@ -178,5 +182,33 @@ public class ProductService {
 
         // Return response
         return productMapper.toProductResponse(product);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('MANAGER')")
+    public void deleteProduct(Long id) {
+
+        // Check product tồn tại
+        Product product = productRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Không tìm thấy món ăn với id: " + id
+                        )
+                );
+
+        // Check product đã từng được order chưa
+        boolean isUsedInOrders =
+                orderItemRepository.existsByProduct_Id(id);
+
+        if (isUsedInOrders) {
+
+            throw new BusinessException(
+                    "Không thể xóa món ăn đã tồn tại trong hóa đơn"
+            );
+        }
+
+        product.setIsDeleted(true);
+        productRepository.save(product);
     }
 }

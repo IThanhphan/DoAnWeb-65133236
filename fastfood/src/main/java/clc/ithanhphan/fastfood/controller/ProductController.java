@@ -85,4 +85,16 @@ public class ProductController {
                 )
                 .build();
     }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteProduct(
+            @PathVariable Long id
+    ) {
+
+        productService.deleteProduct(id);
+
+        return ApiResponse.<Void>builder()
+                .message("Xóa món ăn thành công")
+                .build();
+    }
 }

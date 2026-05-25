@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 
 export default function MenuManager() {
-  // Danh sách danh mục món ăn đồng bộ chuẩn theo MySQL (chứa ID để ánh xạ dữ liệu)
   const categoriesData = [
     { id: 1, name: "Burger" },
     { id: 2, name: "Gà rán" },
@@ -10,7 +9,6 @@ export default function MenuManager() {
     { id: 5, name: "Tráng miệng" },
   ];
 
-  // Giả lập dữ liệu danh sách sản phẩm đồng bộ chính xác với bảng `products` của MySQL
   const [menuItems, setMenuItems] = useState([
     {
       id: 1,

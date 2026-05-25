@@ -67,4 +67,16 @@ public class GlobalExceptionHandler {
                 .message(exception.getMessage())
                 .build();
     }
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<?> handleBusinessException(
+            BusinessException exception
+    ) {
+
+        return ApiResponse.builder()
+                .code(4000)
+                .message(exception.getMessage())
+                .build();
+    }
 }
