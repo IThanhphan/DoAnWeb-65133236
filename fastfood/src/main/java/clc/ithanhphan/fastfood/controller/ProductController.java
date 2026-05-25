@@ -1,0 +1,54 @@
+package clc.ithanhphan.fastfood.controller;
+
+import clc.ithanhphan.fastfood.dto.response.ApiResponse;
+import clc.ithanhphan.fastfood.dto.response.ProductResponse;
+import clc.ithanhphan.fastfood.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/products")
+@RequiredArgsConstructor
+public class ProductController {
+
+    private final ProductService productService;
+
+    @GetMapping
+    public ApiResponse<List<ProductResponse>> getAllProducts(
+
+            @RequestParam(required = false)
+            String keyword,
+
+            @RequestParam(required = false)
+            Long categoryId,
+
+            @RequestParam(required = false)
+            Boolean isAvailable
+    ) {
+
+        return ApiResponse.<List<ProductResponse>>builder()
+                .message("Lấy danh sách món ăn thành công")
+                .result(
+                        productService.getAllProducts(
+                                keyword,
+                                categoryId,
+                                isAvailable
+                        )
+                )
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ProductResponse> getProductById(
+            @PathVariable Long id
+    ) {
+
+        return ApiResponse.<ProductResponse>builder()
+                .message("Lấy chi tiết món ăn thành công")
+                .result(productService.getProductById(id))
+                .build();
+    }
+}
