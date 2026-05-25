@@ -1,9 +1,13 @@
 package clc.ithanhphan.fastfood.service;
 
+import clc.ithanhphan.fastfood.dto.request.ProductCreationRequest;
 import clc.ithanhphan.fastfood.dto.response.ProductResponse;
+import clc.ithanhphan.fastfood.exceptions.DuplicateResourceException;
 import clc.ithanhphan.fastfood.exceptions.ResourceNotFoundException;
 import clc.ithanhphan.fastfood.mapper.ProductMapper;
+import clc.ithanhphan.fastfood.model.Category;
 import clc.ithanhphan.fastfood.model.Product;
+import clc.ithanhphan.fastfood.repository.CategoryRepository;
 import clc.ithanhphan.fastfood.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +19,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
+    private final CategoryRepository categoryRepository;
 
     private final ProductRepository productRepository;
 
@@ -68,6 +74,8 @@ public class ProductService {
         return productMapper.toProductResponseList(products);
     }
 
+    @Transactional
+    @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
     public ProductResponse getProductById(Long id) {
 
         Product product = productRepository
@@ -78,6 +86,45 @@ public class ProductService {
                         )
                 );
 
+        return productMapper.toProductResponse(product);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('MANAGER')")
+    public ProductResponse createProduct(
+            ProductCreationRequest request
+    ) {
+
+        // Check category tồn tại
+        Category category = categoryRepository
+                .findById(request.getCategoryId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Không tìm thấy danh mục với id: "
+                                        + request.getCategoryId()
+                        )
+                );
+
+        // Check tên món ăn đã tồn tại
+        if (productRepository.existsByNameIgnoreCase(
+                request.getName()
+        )) {
+
+            throw new DuplicateResourceException(
+                    "Tên món ăn đã tồn tại"
+            );
+        }
+
+        // Map request -> entity
+        Product product = productMapper.toProduct(request);
+
+        // Set category
+        product.setCategory(category);
+
+        // Save database
+        product = productRepository.save(product);
+
+        // Return response
         return productMapper.toProductResponse(product);
     }
 }

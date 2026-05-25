@@ -1,9 +1,12 @@
 package clc.ithanhphan.fastfood.controller;
 
+import clc.ithanhphan.fastfood.dto.request.ProductCreationRequest;
 import clc.ithanhphan.fastfood.dto.response.ApiResponse;
 import clc.ithanhphan.fastfood.dto.response.ProductResponse;
 import clc.ithanhphan.fastfood.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +52,18 @@ public class ProductController {
         return ApiResponse.<ProductResponse>builder()
                 .message("Lấy chi tiết món ăn thành công")
                 .result(productService.getProductById(id))
+                .build();
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<ProductResponse> createProduct(
+            @Valid @RequestBody ProductCreationRequest request
+    ) {
+
+        return ApiResponse.<ProductResponse>builder()
+                .message("Tạo món ăn thành công")
+                .result(productService.createProduct(request))
                 .build();
     }
 }

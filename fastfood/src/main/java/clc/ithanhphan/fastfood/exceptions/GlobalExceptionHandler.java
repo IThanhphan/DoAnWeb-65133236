@@ -43,4 +43,28 @@ public class GlobalExceptionHandler {
                 .message("Đã xảy ra lỗi hệ thống nghiêm trọng: " + exception.getMessage())
                 .build();
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<?> handleResourceNotFoundException(
+            ResourceNotFoundException exception
+    ) {
+
+        return ApiResponse.builder()
+                .code(4000)
+                .message(exception.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<?> handleDuplicateResourceException(
+            DuplicateResourceException exception
+    ) {
+
+        return ApiResponse.builder()
+                .code(4000)
+                .message(exception.getMessage())
+                .build();
+    }
 }

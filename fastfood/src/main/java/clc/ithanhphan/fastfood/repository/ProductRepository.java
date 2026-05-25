@@ -19,4 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             Long categoryId,
             String keyword
     );
+
+    boolean existsByNameIgnoreCase(String name);
 }
