@@ -19,7 +19,6 @@ public class CategoryService {
 
     private final CategoryMapper categoryMapper;
 
-    @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
     public List<CategoryResponse> getAllCategories() {
 

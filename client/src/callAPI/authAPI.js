@@ -10,8 +10,8 @@ export const loginUser = async (user, dispatch, navigate) => {
   const decodeToken = jwtDecode(res.data.result.accessToken);
   const currentUser = {
     ...res.data.result,
-    role: decodeToken.role
-  }
+    role: decodeToken.role,
+  };
   dispatch(login(currentUser));
 
   if (decodeToken.role === "manager") navigate("/manager");
@@ -20,17 +20,16 @@ export const loginUser = async (user, dispatch, navigate) => {
 
 export const logoutUser = async (accessToken, dispatch, axiosJWT) => {
   try {
-    console.log(axios);
     await axiosJWT.post(
       `${apiName}/auth/logout`,
       {},
       {
-        headers: { token: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
         withCredentials: true,
       },
     );
     dispatch(logout());
   } catch (error) {
-    console.log(error);
+    console.error("Lỗi tại API logoutUser:", error);
   }
 };

@@ -14,7 +14,7 @@ const getAccessToken = async () => {
 
     return res.data.result;
   } catch (error) {
-    console.log(error);
+    console.error("Lỗi tại API getAccessToken:", error);
   }
 };
 

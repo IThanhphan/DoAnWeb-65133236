@@ -21,27 +21,10 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ApiResponse<List<ProductResponse>> getAllProducts(
-
-            @RequestParam(required = false)
-            String keyword,
-
-            @RequestParam(required = false)
-            Long categoryId,
-
-            @RequestParam(required = false)
-            Boolean isAvailable
-    ) {
-
+    public ApiResponse<List<ProductResponse>> getAllProducts() {
         return ApiResponse.<List<ProductResponse>>builder()
                 .message("Lấy danh sách món ăn thành công")
-                .result(
-                        productService.getAllProducts(
-                                keyword,
-                                categoryId,
-                                isAvailable
-                        )
-                )
+                .result(productService.getAllProducts())
                 .build();
     }
 

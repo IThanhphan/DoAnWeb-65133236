@@ -33,48 +33,9 @@ public class ProductService {
 
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
-    public List<ProductResponse> getAllProducts(
-            String keyword,
-            Long categoryId,
-            Boolean isAvailable
-    ) {
-
+    public List<ProductResponse> getAllProducts() {
         List<Product> products;
-
-        // Filter category + keyword
-        if (categoryId != null && keyword != null && !keyword.isBlank()) {
-
-            products = productRepository
-                    .findByCategory_IdAndNameContainingIgnoreCase(
-                            categoryId,
-                            keyword
-                    );
-        }
-
-        // Filter category
-        else if (categoryId != null) {
-
-            products = productRepository.findByCategory_Id(categoryId);
-        }
-
-        // Filter keyword
-        else if (keyword != null && !keyword.isBlank()) {
-
-            products = productRepository
-                    .findByNameContainingIgnoreCase(keyword);
-        }
-
-        // Filter available
-        else if (isAvailable != null) {
-
-            products = productRepository.findByIsAvailable(isAvailable);
-        }
-
-        // Get all
-        else {
-
-            products = productRepository.findAll();
-        }
+        products = productRepository.findByIsDeletedFalse();
 
         return productMapper.toProductResponseList(products);
     }
