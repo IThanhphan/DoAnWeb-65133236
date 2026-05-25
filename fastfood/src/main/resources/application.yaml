@@ -7,7 +7,7 @@ spring:
   application:
     name: fastfood
   datasource:
-    url: "jdbc:mysql://localhost:3306/fast_food_management"
+    url: "jdbc:mysql://localhost:3306/fast_food_management?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci"
     username: root
     password: root
   jpa:

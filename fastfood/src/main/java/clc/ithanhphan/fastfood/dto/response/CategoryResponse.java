@@ -1,16 +1,20 @@
 package clc.ithanhphan.fastfood.dto.response;
 
-import clc.ithanhphan.fastfood.model.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LoginResponse {
-    private String fullName;
-    private String accessToken;
+public class CategoryResponse {
+
+    private Long id;
+
+    private String name;
+
+    private String imageUrl;
+
+    private Boolean isActive;
 }
