@@ -1,6 +1,7 @@
 package clc.ithanhphan.fastfood.controller;
 
 import clc.ithanhphan.fastfood.dto.request.ProductCreationRequest;
+import clc.ithanhphan.fastfood.dto.request.ProductUpdateRequest;
 import clc.ithanhphan.fastfood.dto.response.ApiResponse;
 import clc.ithanhphan.fastfood.dto.response.ProductResponse;
 import clc.ithanhphan.fastfood.service.ProductService;
@@ -64,6 +65,24 @@ public class ProductController {
         return ApiResponse.<ProductResponse>builder()
                 .message("Tạo món ăn thành công")
                 .result(productService.createProduct(request))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<ProductResponse> updateProduct(
+
+            @PathVariable Long id,
+
+            @Valid
+            @RequestBody
+            ProductUpdateRequest request
+    ) {
+
+        return ApiResponse.<ProductResponse>builder()
+                .message("Cập nhật món ăn thành công")
+                .result(
+                        productService.updateProduct(id, request)
+                )
                 .build();
     }
 }

@@ -21,4 +21,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     );
 
     boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }

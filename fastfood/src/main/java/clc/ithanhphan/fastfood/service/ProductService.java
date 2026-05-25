@@ -1,6 +1,7 @@
 package clc.ithanhphan.fastfood.service;
 
 import clc.ithanhphan.fastfood.dto.request.ProductCreationRequest;
+import clc.ithanhphan.fastfood.dto.request.ProductUpdateRequest;
 import clc.ithanhphan.fastfood.dto.response.ProductResponse;
 import clc.ithanhphan.fastfood.exceptions.DuplicateResourceException;
 import clc.ithanhphan.fastfood.exceptions.ResourceNotFoundException;
@@ -122,6 +123,57 @@ public class ProductService {
         product.setCategory(category);
 
         // Save database
+        product = productRepository.save(product);
+
+        // Return response
+        return productMapper.toProductResponse(product);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('MANAGER')")
+    public ProductResponse updateProduct(
+            Long id,
+            ProductUpdateRequest request
+    ) {
+
+        // Check product tồn tại
+        Product product = productRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Không tìm thấy món ăn với id: " + id
+                        )
+                );
+
+        // Check category tồn tại
+        Category category = categoryRepository
+                .findById(request.getCategoryId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Không tìm thấy danh mục với id: "
+                                        + request.getCategoryId()
+                        )
+                );
+
+        // Check duplicate name
+        if (productRepository
+                .existsByNameIgnoreCaseAndIdNot(
+                        request.getName(),
+                        id
+                )) {
+
+            throw new DuplicateResourceException(
+                    "Tên món ăn đã tồn tại"
+            );
+        }
+
+        // Update data
+        productMapper.updateProduct(product, request);
+
+        // Set category
+        product.setCategory(category);
+
+        // Save DB
         product = productRepository.save(product);
 
         // Return response
