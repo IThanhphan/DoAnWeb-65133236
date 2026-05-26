@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -66,5 +68,34 @@ public class InventoryTransactionService {
                 .toInventoryTransactionResponse(
                         inventoryTransaction
                 );
+    }
+
+    @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
+    public List<InventoryTransactionResponse>
+    getInventoryTransactionsByIngredient(
+            Long ingredientId
+    ) {
+
+        Ingredient ingredient =
+                ingredientRepository
+                        .findById(ingredientId)
+                        .orElseThrow(() ->
+                                new AppException(
+                                        ErrorCode.INGREDIENT_NOT_FOUND
+                                )
+                        );
+
+        List<InventoryTransaction> transactions =
+                inventoryTransactionRepository
+                        .findByIngredient_IdOrderByCreatedAtDesc(
+                                ingredient.getId()
+                        );
+
+        return transactions.stream()
+                .map(
+                        inventoryTransactionMapper
+                                ::toInventoryTransactionResponse
+                )
+                .toList();
     }
 }

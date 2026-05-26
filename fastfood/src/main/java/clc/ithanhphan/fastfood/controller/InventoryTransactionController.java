@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/inventory-transactions")
 @RequiredArgsConstructor
@@ -34,6 +36,27 @@ public class InventoryTransactionController {
         return ApiResponse
                 .<InventoryTransactionResponse>builder()
                 .message("Nhập kho thành công")
+                .result(result)
+                .build();
+    }
+
+    @GetMapping("/ingredient/{ingredientId}")
+    public ApiResponse<List<InventoryTransactionResponse>>
+    getInventoryTransactionsByIngredient(
+
+            @PathVariable Long ingredientId
+
+    ) {
+
+        List<InventoryTransactionResponse> result =
+                inventoryTransactionService
+                        .getInventoryTransactionsByIngredient(
+                                ingredientId
+                        );
+
+        return ApiResponse
+                .<List<InventoryTransactionResponse>>builder()
+                .message("Lấy lịch sử giao dịch kho thành công")
                 .result(result)
                 .build();
     }
