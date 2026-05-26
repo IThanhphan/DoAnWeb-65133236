@@ -1,52 +1,10 @@
-import { useState } from "react";
-
 export default function AddItemModal({
   categories,
-  inventoryItems,
-  setInventoryItems,
+  formValues,
+  setFormValues,
+  onSave,
   onClose,
 }) {
-  const [newItem, setNewItem] = useState({
-    name: "",
-    categoryId: 1,
-    stock: "",
-    minStock: "",
-    unit: "kg",
-  });
-
-  const generateNextCode = () => {
-    const maxId =
-      inventoryItems.length > 0
-        ? Math.max(...inventoryItems.map((item) => item.id))
-        : 0;
-    return `NVL-${String(maxId + 1).padStart(3, "0")}`;
-  };
-
-  const handleAddItem = (e) => {
-    e.preventDefault();
-    const selectedCatObj = categories.find(
-      (c) => c.id === parseInt(newItem.categoryId),
-    );
-    const nextId =
-      inventoryItems.length > 0
-        ? Math.max(...inventoryItems.map((item) => item.id)) + 1
-        : 1;
-
-    const itemToAdd = {
-      id: nextId,
-      code: `NVL-${String(nextId).padStart(3, "0")}`,
-      name: newItem.name,
-      category: { id: selectedCatObj.id, name: selectedCatObj.name },
-      stock: parseFloat(newItem.stock) || 0,
-      minStock: parseFloat(newItem.minStock) || 0,
-      unit: newItem.unit,
-      lastUpdated: "Vừa tạo",
-    };
-
-    setInventoryItems((prev) => [itemToAdd, ...prev]);
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -67,13 +25,14 @@ export default function AddItemModal({
           </button>
         </div>
 
-        <form onSubmit={handleAddItem} className="p-6 space-y-4">
+        {/* Gọi trực tiếp hàm onSave truyền từ cha khi submit form */}
+        <form onSubmit={onSave} className="p-6 space-y-4">
           <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex justify-between items-center">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Mã Vật Tư Dự Kiến:
             </span>
             <span className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg text-sm font-mono font-bold tracking-wide shadow-inner">
-              {generateNextCode()}
+              {formValues.code || "Đang tạo..."}
             </span>
           </div>
 
@@ -85,8 +44,10 @@ export default function AddItemModal({
               type="text"
               required
               placeholder="Ví dụ: Tương ớt Chinsu, Hành tây Đà Lạt..."
-              value={newItem.name}
-              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              value={formValues.name}
+              onChange={(e) =>
+                setFormValues({ ...formValues, name: e.target.value })
+              }
               className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm font-medium"
             />
           </div>
@@ -96,9 +57,12 @@ export default function AddItemModal({
               Nhóm Vật Tư Kho (Chuẩn hóa)
             </label>
             <select
-              value={newItem.categoryId}
+              value={formValues.ingredientCategoryId}
               onChange={(e) =>
-                setNewItem({ ...newItem, categoryId: e.target.value })
+                setFormValues({
+                  ...formValues,
+                  ingredientCategoryId: e.target.value,
+                })
               }
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-white cursor-pointer font-medium"
             >
@@ -121,9 +85,12 @@ export default function AddItemModal({
                 type="number"
                 step="any"
                 placeholder="0"
-                value={newItem.stock}
+                value={formValues.stockQuantity}
                 onChange={(e) =>
-                  setNewItem({ ...newItem, stock: e.target.value })
+                  setFormValues({
+                    ...formValues,
+                    stockQuantity: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
               />
@@ -136,9 +103,12 @@ export default function AddItemModal({
                 type="number"
                 step="any"
                 placeholder="0"
-                value={newItem.minStock}
+                value={formValues.minRequiredQuantity}
                 onChange={(e) =>
-                  setNewItem({ ...newItem, minStock: e.target.value })
+                  setFormValues({
+                    ...formValues,
+                    minRequiredQuantity: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
               />
@@ -151,9 +121,9 @@ export default function AddItemModal({
                 type="text"
                 required
                 placeholder="kg, cái..."
-                value={newItem.unit}
+                value={formValues.unit}
                 onChange={(e) =>
-                  setNewItem({ ...newItem, unit: e.target.value })
+                  setFormValues({ ...formValues, unit: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
               />

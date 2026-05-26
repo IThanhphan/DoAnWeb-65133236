@@ -9,14 +9,17 @@ import HistoryLogModal from "./HistoryLogModal";
 import { createAxiosJWT } from "../../../callAPI/createInstance";
 import { login } from "../../../redux/userSlice";
 import { getListIngredientCategory } from "../../../callAPI/categoriesAPI";
-import { getListIngredient } from "../../../callAPI/ingredientAPI";
+import {
+  getListIngredient,
+  createIngredient,
+} from "../../../callAPI/ingredientAPI"; // 1. Import hàm API
 
 export default function InventoryManager() {
   const userLogin = useSelector((state) => state.user?.currentUser);
   const dispatch = useDispatch();
   const axiosJWT = createAxiosJWT(userLogin, dispatch, login);
 
-    // State Bộ lọc & Tìm kiếm
+  // State Bộ lọc & Tìm kiếm
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -28,6 +31,15 @@ export default function InventoryManager() {
 
   const [categories, setCategories] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
+
+  const [formValues, setFormValues] = useState({
+    code: "",
+    ingredientCategoryId: 1,
+    name: "",
+    stockQuantity: "",
+    unit: "kg",
+    minRequiredQuantity: "",
+  });
 
   const mockHistoryLog = {
     1: [
@@ -75,7 +87,15 @@ export default function InventoryManager() {
           userLogin?.accessToken,
           axiosJWT,
         );
-        if (resCate) setCategories(resCate);
+        if (resCate) {
+          setCategories(resCate);
+          if (resCate.length > 0) {
+            setFormValues((prev) => ({
+              ...prev,
+              ingredientCategoryId: resCate[0].id,
+            }));
+          }
+        }
       } catch (error) {
         console.error("Lỗi khi lấy danh mục:", error);
       }
@@ -116,10 +136,10 @@ export default function InventoryManager() {
   const filteredItems = inventoryItems.filter((item) => {
     const matchesCategory =
       selectedCategory === "Tất cả" ||
-      item.ingredientCategory.name === selectedCategory;
+      item.ingredientCategory?.name === selectedCategory;
     const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchTerm.toLowerCase());
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.code?.toLowerCase().includes(searchTerm.toLowerCase());
     const status = getStockStatus(item);
     const matchesStatus =
       statusFilter === "all" ||
@@ -127,6 +147,23 @@ export default function InventoryManager() {
       (statusFilter === "out" && status.type === "out");
     return matchesCategory && matchesSearch && matchesStatus;
   });
+
+  const handleOpenAddModal = () => {
+    const maxId =
+      inventoryItems.length > 0
+        ? Math.max(...inventoryItems.map((item) => item.id || 0))
+        : 0;
+    const nextCode = `NVL-${String(maxId + 1).padStart(3, "0")}`;
+    setFormValues({
+      code: nextCode,
+      ingredientCategoryId: categories[0]?.id || 1,
+      name: "",
+      stockQuantity: "",
+      unit: "kg",
+      minRequiredQuantity: "",
+    });
+    setActiveModal("add");
+  };
 
   const handleOpenAdjust = (type, item = null) => {
     setActionType(type);
@@ -144,10 +181,51 @@ export default function InventoryManager() {
     }
   };
 
+  // 3. ĐÂY CHÍNH LÀ HÀM BẠN CẦN: Gọi gán API createIngredient giống hệt handleSaveItem
+  const handleSaveIngredient = async (e) => {
+    e.preventDefault();
+
+    if (
+      !formValues.code ||
+      !formValues.name ||
+      formValues.stockQuantity === "" ||
+      formValues.minRequiredQuantity === ""
+    ) {
+      alert("Vui lòng điền đầy đủ tất cả các trường thông tin bắt buộc!");
+      return;
+    }
+
+    // Đóng gói dữ liệu ép kiểu số chuẩn theo Postman JSON của bạn
+    const ingredientPayload = {
+      code: formValues.code,
+      ingredientCategoryId: Number(formValues.ingredientCategoryId),
+      name: formValues.name,
+      stockQuantity: Number(formValues.stockQuantity),
+      unit: formValues.unit,
+      minRequiredQuantity: Number(formValues.minRequiredQuantity),
+    };
+
+    try {
+      await createIngredient(
+        userLogin?.accessToken,
+        ingredientPayload,
+        axiosJWT,
+      );
+
+      await loadIngredients();
+
+      alert("Thêm mới nguyên liệu vào kho thành công! 🎉");
+      setActiveModal(null);
+    } catch (error) {
+      console.error("Lỗi khi thêm nguyên liệu:", error);
+      alert("Thêm nguyên liệu thất bại, vui lòng kiểm tra lại hệ thống.");
+    }
+  };
+
   return (
     <div className="p-8 space-y-6 max-w-7xl w-full mx-auto relative text-slate-700">
       <InventoryHeader
-        onOpenAddModal={() => setActiveModal("add")}
+        onOpenAddModal={handleOpenAddModal}
         onOpenAdjustModal={handleOpenAdjust}
       />
 
@@ -172,11 +250,13 @@ export default function InventoryManager() {
         onDelete={handleDeleteItem}
       />
 
+      {/* 4. Truyền formValues, setFormValues và hàm handleSaveIngredient xuống Modal */}
       {activeModal === "add" && (
         <AddItemModal
           categories={categories}
-          inventoryItems={inventoryItems}
-          setInventoryItems={setInventoryItems}
+          formValues={formValues}
+          setFormValues={setFormValues}
+          onSave={handleSaveIngredient}
           onClose={() => setActiveModal(null)}
         />
       )}
