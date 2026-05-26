@@ -19,6 +19,13 @@ public class Ingredient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ingredient_category_id", nullable = false)
+    private IngredientCategory ingredientCategory;
+
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 

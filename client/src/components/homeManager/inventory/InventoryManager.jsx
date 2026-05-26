@@ -1,23 +1,22 @@
 import { useState } from "react";
 
 export default function InventoryManager() {
-  // 1. Danh mục nhóm nguyên liệu
+  // Thay vì mảng string phẳng, chúng ta quản lý danh mục kho theo cấu trúc Object chuẩn hóa từ DB
   const categories = [
-    "Tất cả",
-    "Thịt tươi",
-    "Bánh mì & Bột",
-    "Rau củ",
-    "Gia vị & Sốt",
-    "Đóng gói",
+    { id: "all", name: "Tất cả" },
+    { id: 1, name: "Thịt tươi" },
+    { id: 2, name: "Bánh mì & Bột" },
+    { id: 3, name: "Rau củ" },
+    { id: 4, name: "Gia vị & Sốt" },
+    { id: 5, name: "Đóng gói" },
   ];
 
-  // 2. State quản lý dữ liệu kho hàng chính
   const [inventoryItems, setInventoryItems] = useState([
     {
       id: 1,
-      name: "Thịt bò và vụn bò băm",
-      category: "Thịt tươi",
       code: "NVL-001",
+      name: "Thịt bò và vụn bò băm",
+      category: { id: 1, name: "Thịt tươi" }, // Dữ liệu dạng lồng nhau sau chuẩn hóa
       stock: 4.5,
       minStock: 10,
       unit: "kg",
@@ -25,9 +24,9 @@ export default function InventoryManager() {
     },
     {
       id: 2,
-      name: "Vỏ bánh mì Burger mè",
-      category: "Bánh mì & Bột",
       code: "NVL-012",
+      name: "Vỏ bánh mì Burger mè",
+      category: { id: 2, name: "Bánh mì & Bột" },
       stock: 150,
       minStock: 50,
       unit: "cái",
@@ -35,9 +34,9 @@ export default function InventoryManager() {
     },
     {
       id: 3,
-      name: "Phô mai Cheddar lát",
-      category: "Đóng gói",
       code: "NVL-045",
+      name: "Phô mai Cheddar lát",
+      category: { id: 5, name: "Đóng gói" },
       stock: 24,
       minStock: 30,
       unit: "lát",
@@ -45,9 +44,9 @@ export default function InventoryManager() {
     },
     {
       id: 4,
-      name: "Khoai tây cọng đông lạnh",
-      category: "Đóng gói",
       code: "NVL-019",
+      name: "Khoai tây cọng đông lạnh",
+      category: { id: 5, name: "Đóng gói" },
       stock: 45,
       minStock: 20,
       unit: "kg",
@@ -55,9 +54,9 @@ export default function InventoryManager() {
     },
     {
       id: 5,
-      name: "Sốt Mayo đặc chế",
-      category: "Gia vị & Sốt",
       code: "NVL-008",
+      name: "Sốt Mayo đặc chế",
+      category: { id: 4, name: "Gia vị & Sốt" },
       stock: 0,
       minStock: 5,
       unit: "lít",
@@ -65,9 +64,9 @@ export default function InventoryManager() {
     },
     {
       id: 6,
-      name: "Xà lách lolo xanh",
-      category: "Rau củ",
       code: "NVL-031",
+      name: "Xà lách lolo xanh",
+      category: { id: 3, name: "Rau củ" },
       stock: 3.2,
       minStock: 3,
       unit: "kg",
@@ -75,7 +74,6 @@ export default function InventoryManager() {
     },
   ]);
 
-  // Giả lập dữ liệu lịch sử thẻ kho của các vật tư
   const mockHistoryLog = {
     1: [
       {
@@ -104,19 +102,38 @@ export default function InventoryManager() {
     ],
   };
 
-  // 3. State Bộ lọc & Tìm kiếm
+  // State Bộ lọc & Tìm kiếm
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // 4. State điều khiển UI Modals tương tác
-  const [activeModal, setActiveModal] = useState(null); // 'adjust' (Nhập/Kiểm), 'history' (Xem log), hoặc null
+  // State điều khiển UI Modals ('adjust', 'history', 'add', hoặc null)
+  const [activeModal, setActiveModal] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // State phục vụ form nhập dữ liệu
+  // State phục vụ form nhập dữ liệu (Nhập/Kiểm)
   const [formQty, setFormQty] = useState("");
   const [formNote, setFormNote] = useState("Nhập hàng bổ sung");
-  const [actionType, setActionType] = useState("NHẬP"); // 'NHẬP' hoặc 'KIỂM_KHO'
+  const [actionType, setActionType] = useState("NHẬP");
+
+  // State phục vụ form THÊM MỚI nguyên liệu
+  const [newItem, setNewItem] = useState({
+    name: "",
+    categoryId: 1, // Mặc định chọn danh mục đầu tiên (không tính 'Tất cả')
+    stock: "",
+    minStock: "",
+    unit: "kg",
+  });
+
+  const generateNextCode = () => {
+    const maxId =
+      inventoryItems.length > 0
+        ? Math.max(...inventoryItems.map((item) => item.id))
+        : 0;
+    const nextNumber = maxId + 1;
+    // Trả về định dạng NVL-00X (đảm bảo 3 chữ số)
+    return `NVL-${String(nextNumber).padStart(3, "0")}`;
+  };
 
   // Hàm helper xác định trạng thái tồn kho
   const getStockStatus = (item) => {
@@ -139,10 +156,10 @@ export default function InventoryManager() {
     };
   };
 
-  // Logic lọc dữ liệu bảng
+  // Logic lọc dữ liệu bảng áp dụng cấu trúc lồng nhau `.category.name`
   const filteredItems = inventoryItems.filter((item) => {
     const matchesCategory =
-      selectedCategory === "Tất cả" || item.category === selectedCategory;
+      selectedCategory === "Tất cả" || item.category.name === selectedCategory;
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.code.toLowerCase().includes(searchTerm.toLowerCase());
@@ -157,11 +174,8 @@ export default function InventoryManager() {
   // Xử lý mở Form Nhập/Kiểm hàng
   const handleOpenAdjust = (type, item = null) => {
     setActionType(type);
-    setSelectedItem(item || inventoryItems[0]); // Mặc định lấy dòng đầu nếu bấm nút tổng
+    setSelectedItem(item || inventoryItems[0]);
     setFormQty("");
-    setFormNote(
-      type === "NHẬP" ? "Nhập kho định kỳ" : "Cân đối kiểm kho thực tế",
-    );
     setActiveModal("adjust");
   };
 
@@ -179,7 +193,7 @@ export default function InventoryManager() {
           if (actionType === "NHẬP") {
             newStock = item.stock + numQty;
           } else if (actionType === "KIỂM_KHO") {
-            newStock = numQty; // Kiểm kho lấy số thực tế đè lên luôn
+            newStock = numQty;
           }
           return {
             ...item,
@@ -190,8 +204,56 @@ export default function InventoryManager() {
         return item;
       }),
     );
-
     setActiveModal(null);
+  };
+
+  // Xử lý THÊM MỚI nguyên vật liệu
+  const handleAddItem = (e) => {
+    e.preventDefault();
+
+    const selectedCatObj = categories.find(
+      (c) => c.id === parseInt(newItem.categoryId),
+    );
+    const nextId =
+      inventoryItems.length > 0
+        ? Math.max(...inventoryItems.map((item) => item.id)) + 1
+        : 1;
+    const autoGeneratedCode = `NVL-${String(nextId).padStart(3, "0")}`;
+
+    const itemToAdd = {
+      id: nextId,
+      code: autoGeneratedCode, // Mã tự động gán ở đây
+      name: newItem.name,
+      category: {
+        id: selectedCatObj.id,
+        name: selectedCatObj.name,
+      },
+      stock: parseFloat(newItem.stock) || 0,
+      minStock: parseFloat(newItem.minStock) || 0,
+      unit: newItem.unit,
+      lastUpdated: "Vừa tạo",
+    };
+
+    setInventoryItems((prev) => [itemToAdd, ...prev]);
+    setActiveModal(null);
+    setNewItem({
+      name: "",
+      categoryId: 1,
+      stock: "",
+      minStock: "",
+      unit: "kg",
+    });
+  };
+
+  // Xử lý XÓA nguyên vật liệu
+  const handleDeleteItem = (id, name) => {
+    if (
+      window.confirm(
+        `Bạn có chắc chắn muốn xóa nguyên liệu "${name}" ra khỏi danh mục kho không?\nHành động này không thể hoàn tác.`,
+      )
+    ) {
+      setInventoryItems((prev) => prev.filter((item) => item.id !== id));
+    }
   };
 
   return (
@@ -206,7 +268,13 @@ export default function InventoryManager() {
             Theo dõi số lượng vật tư thực tế, cập nhật thẻ kho tự động.
           </p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setActiveModal("add")}
+            className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 rounded-xl transition-all text-sm shadow-md shadow-blue-600/10"
+          >
+            <span>➕</span> Thêm nguyên liệu
+          </button>
           <button
             onClick={() => handleOpenAdjust("KIỂM_KHO")}
             className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-3 rounded-xl transition-all text-sm"
@@ -250,15 +318,15 @@ export default function InventoryManager() {
         <div className="flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
           {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.name)}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                selectedCategory === cat
+                selectedCategory === cat.name
                   ? "bg-slate-900 text-white shadow-sm"
                   : "bg-slate-50 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              {cat}
+              {cat.name}
             </button>
           ))}
         </div>
@@ -297,7 +365,7 @@ export default function InventoryManager() {
                       </td>
                       <td className="py-4 px-6">
                         <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
-                          {item.category}
+                          {item.category.name} {/* Đọc từ Object lồng nhau */}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-right font-black text-slate-900">
@@ -348,6 +416,14 @@ export default function InventoryManager() {
                           >
                             📊
                           </button>
+                          {/* Nút XÓA mới được tích hợp */}
+                          <button
+                            onClick={() => handleDeleteItem(item.id, item.name)}
+                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors text-base"
+                            title="Xóa vật tư khỏi danh mục"
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -368,7 +444,145 @@ export default function InventoryManager() {
         </div>
       </div>
 
-      {/* INTERACTIVE MODAL 1: PHIẾU NHẬP HÀNG / KIỂM KHO */}
+      {/* NEW MODAL: FORM THÊM MỚI NGUYÊN VẬT LIỆU */}
+      {activeModal === "add" && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">
+                  ➕ Thêm Mới Nguyên Vật Liệu
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Khai báo cấu trúc danh mục kho chuẩn hóa.
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddItem} className="p-6 space-y-4">
+              {/* Mã NVL chuyển thành thanh hiển thị Read-Only */}
+              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Mã Vật Tư Dự Kiến:
+                </span>
+                <span className="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg text-sm font-mono font-bold tracking-wide shadow-inner">
+                  {generateNextCode()}
+                </span>
+              </div>
+
+              {/* Tên vật tư chiếm trọn dòng đầu */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Tên Nguyên Vật Liệu
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Tương ớt Chinsu, Hành tây Đà Lạt..."
+                  value={newItem.name}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Nhóm Vật Tư Kho (Chuẩn hóa)
+                </label>
+                <select
+                  value={newItem.categoryId}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, categoryId: e.target.value })
+                  }
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-white cursor-pointer font-medium"
+                >
+                  {categories
+                    .filter((c) => c.id !== "all")
+                    .map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Số Tồn Đầu
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="0"
+                    value={newItem.stock}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, stock: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Mức Tối Thiểu
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="0"
+                    value={newItem.minStock}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, minStock: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Đơn vị
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="kg, cái..."
+                    value={newItem.unit}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, unit: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal(null)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-sm shadow-md shadow-blue-600/10 transition-colors"
+                >
+                  Tạo vật tư kho
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ADJUST: PHIẾU NHẬP HÀNG / KIỂM KHO */}
       {activeModal === "adjust" && selectedItem && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -479,7 +693,7 @@ export default function InventoryManager() {
         </div>
       )}
 
-      {/* INTERACTIVE MODAL 2: XEM LỊCH SỬ THẺ KHO (LOGS) */}
+      {/* MODAL HISTORY: XEM LỊCH SỬ THÈ KHO */}
       {activeModal === "history" && selectedItem && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
