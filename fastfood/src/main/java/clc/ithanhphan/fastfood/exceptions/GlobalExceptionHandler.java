@@ -1,7 +1,9 @@
 package clc.ithanhphan.fastfood.exceptions;
 
 import clc.ithanhphan.fastfood.dto.response.ApiResponse;
+import clc.ithanhphan.fastfood.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +12,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(value = AppException.class)
+    ResponseEntity<ApiResponse<?>> handlingAppException(
+            AppException exception
+    ) {
+
+        ErrorCode errorCode = exception.getErrorCode();
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(apiResponse);
+    }
     // 1. Xử lý các lỗi nghiệp vụ do bạn tự throw bằng RuntimeException
     @ExceptionHandler(value = RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
