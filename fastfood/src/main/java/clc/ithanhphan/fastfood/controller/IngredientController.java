@@ -1,12 +1,12 @@
 package clc.ithanhphan.fastfood.controller;
 
+import clc.ithanhphan.fastfood.dto.request.IngredientCreationRequest;
 import clc.ithanhphan.fastfood.dto.response.ApiResponse;
 import clc.ithanhphan.fastfood.dto.response.IngredientResponse;
 import clc.ithanhphan.fastfood.service.IngredientService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,6 +26,35 @@ public class IngredientController {
         return ApiResponse.<List<IngredientResponse>>builder()
                 .message("Lấy danh sách nguyên liệu thành công")
                 .result(result)
+                .build();
+    }
+
+    @PostMapping
+    public ApiResponse<IngredientResponse>
+    createIngredient(
+            @RequestBody
+            @Valid
+            IngredientCreationRequest request
+    ) {
+
+        IngredientResponse result =
+                ingredientService.createIngredient(request);
+
+        return ApiResponse.<IngredientResponse>builder()
+                .message("Tạo nguyên liệu thành công")
+                .result(result)
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteIngredient(
+            @PathVariable Long id
+    ) {
+
+        ingredientService.deleteIngredient(id);
+
+        return ApiResponse.<Void>builder()
+                .message("Xóa nguyên liệu thành công")
                 .build();
     }
 }

@@ -42,6 +42,10 @@ public class Ingredient {
     @Builder.Default
     private BigDecimal minRequiredQuantity = BigDecimal.ZERO;
 
+    @Column(name = "is_deleted")
+    @Builder.Default
+    private Boolean isDeleted = false;
+
     @Column(name = "updated_at", insertable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;

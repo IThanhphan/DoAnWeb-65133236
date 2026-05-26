@@ -16,12 +16,28 @@ public enum ErrorCode {
             2001,
             "Nguyên liệu không tồn tại",
             HttpStatus.NOT_FOUND
+    ),
+
+    INGREDIENT_CATEGORY_NOT_FOUND(
+            2002,
+            "Nhóm nguyên liệu không tồn tại",
+            HttpStatus.NOT_FOUND
+    ),
+
+    INGREDIENT_CODE_EXISTED(
+            2003,
+            "Mã nguyên liệu đã tồn tại",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    INGREDIENT_NAME_EXISTED(
+            2004,
+            "Tên nguyên liệu đã tồn tại",
+            HttpStatus.BAD_REQUEST
     );
 
     private final int code;
-
     private final String message;
-
     private final HttpStatus statusCode;
 
     ErrorCode(

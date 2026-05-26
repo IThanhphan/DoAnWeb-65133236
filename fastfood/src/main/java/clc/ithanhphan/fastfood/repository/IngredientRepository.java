@@ -8,4 +8,11 @@ import java.util.List;
 
 @Repository
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
+    boolean existsByCode(String code);
+
+    boolean existsByName(String name);
+
+    List<Ingredient> findByIsDeletedFalse();
+
+    boolean existsByIdAndIsDeletedFalse(Long id);
 }
