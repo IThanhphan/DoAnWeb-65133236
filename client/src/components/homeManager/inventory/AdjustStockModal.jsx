@@ -5,33 +5,24 @@ export default function AdjustStockModal({
   selectedItem,
   setSelectedItem,
   inventoryItems,
-  setInventoryItems,
+  onSave,
   onClose,
 }) {
   const [formQty, setFormQty] = useState("");
-  const [formNote, setFormNote] = useState("Nhập hàng bổ sung");
+  const [formNote, setFormNote] = useState(() => {
+    return actionType === "NHẬP"
+      ? "Nhập hàng bổ sung"
+      : "Điều chỉnh số lượng sau kiểm kho thực tế";
+  });
 
   const handleSaveAdjustment = (e) => {
     e.preventDefault();
     const numQty = parseFloat(formQty);
-    if (isNaN(numQty) || numQty < 0)
+    if (isNaN(numQty) || numQty < 0) {
       return alert("Vui lòng nhập số lượng hợp lệ!");
+    }
 
-    setInventoryItems((prev) =>
-      prev.map((item) => {
-        if (item.id === selectedItem.id) {
-          let newStock = item.stock;
-          if (actionType === "NHẬP") {
-            newStock = item.stock + numQty;
-          } else if (actionType === "KIỂM_KHO") {
-            newStock = numQty;
-          }
-          return { ...item, stock: newStock, lastUpdated: `Vừa xong` };
-        }
-        return item;
-      }),
-    );
-    onClose();
+    onSave(numQty, formNote);
   };
 
   return (
@@ -82,13 +73,13 @@ export default function AdjustStockModal({
             <span>
               Số tồn hiện tại:{" "}
               <b className="text-slate-900">
-                {selectedItem.stock} {selectedItem.unit}
+                {selectedItem.stockQuantity} {selectedItem.unit}
               </b>
             </span>
             <span>
               Mức tối thiểu:{" "}
               <b>
-                {selectedItem.minStock} {selectedItem.unit}
+                {selectedItem.minRequiredQuantity} {selectedItem.unit}
               </b>
             </span>
           </div>

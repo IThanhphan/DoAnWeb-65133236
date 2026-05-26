@@ -18,10 +18,6 @@ public class InventoryImportRequest {
     private Long ingredientId;
 
     @NotNull(message = "Số lượng nhập không được để trống")
-    @DecimalMin(
-            value = "0.01",
-            message = "Số lượng nhập phải lớn hơn 0"
-    )
     private BigDecimal quantity;
 
     @NotBlank(message = "Ghi chú không được để trống")

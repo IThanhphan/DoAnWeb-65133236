@@ -1,3 +1,5 @@
+import { formatDateTime } from "../../../helper/formatDateTime";
+
 export default function InventoryTable({
   filteredItems,
   getStockStatus,
@@ -5,6 +7,7 @@ export default function InventoryTable({
   onOpenHistory,
   onDelete,
 }) {
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="overflow-x-auto">
@@ -68,7 +71,7 @@ export default function InventoryTable({
                       </span>
                     </td>
                     <td className="py-4 px-6 text-center text-xs text-slate-400">
-                      {item.updatedAt}
+                      {formatDateTime(item.updatedAt)}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex justify-center gap-1">

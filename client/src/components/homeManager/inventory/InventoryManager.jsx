@@ -12,7 +12,11 @@ import { getListIngredientCategory } from "../../../callAPI/categoriesAPI";
 import {
   getListIngredient,
   createIngredient,
-} from "../../../callAPI/ingredientAPI"; // 1. Import hàm API
+} from "../../../callAPI/ingredientAPI";
+import {
+  createIngredientTransaction,
+  getHistoryIngredientTransaction,
+} from "../../../callAPI/inventoryAPI";
 
 export default function InventoryManager() {
   const userLogin = useSelector((state) => state.user?.currentUser);
@@ -32,6 +36,9 @@ export default function InventoryManager() {
   const [categories, setCategories] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
 
+  const [historyLog, setHistoryLog] = useState([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
   const [formValues, setFormValues] = useState({
     code: "",
     ingredientCategoryId: 1,
@@ -40,34 +47,6 @@ export default function InventoryManager() {
     unit: "kg",
     minRequiredQuantity: "",
   });
-
-  const mockHistoryLog = {
-    1: [
-      {
-        id: 101,
-        date: "24/05/2026 10:30",
-        type: "XUẤT",
-        qty: -1.5,
-        note: "Xuất kho chế biến ca sáng",
-      },
-      {
-        id: 102,
-        date: "23/05/2026 14:00",
-        type: "NHẬP",
-        qty: 6.0,
-        note: "Nhà cung cấp giao hàng đợt 1",
-      },
-    ],
-    2: [
-      {
-        id: 201,
-        date: "24/05/2026 08:15",
-        type: "NHẬP",
-        qty: 100,
-        note: "Nhập bánh tươi đầu ngày",
-      },
-    ],
-  };
 
   const loadIngredients = async () => {
     try {
@@ -181,7 +160,6 @@ export default function InventoryManager() {
     }
   };
 
-  // 3. ĐÂY CHÍNH LÀ HÀM BẠN CẦN: Gọi gán API createIngredient giống hệt handleSaveItem
   const handleSaveIngredient = async (e) => {
     e.preventDefault();
 
@@ -195,7 +173,6 @@ export default function InventoryManager() {
       return;
     }
 
-    // Đóng gói dữ liệu ép kiểu số chuẩn theo Postman JSON của bạn
     const ingredientPayload = {
       code: formValues.code,
       ingredientCategoryId: Number(formValues.ingredientCategoryId),
@@ -222,6 +199,75 @@ export default function InventoryManager() {
     }
   };
 
+  const handleSaveAdjustStock = async (inputQty, note) => {
+    const numQty = parseFloat(inputQty);
+    if (isNaN(numQty) || numQty < 0) {
+      alert("Vui lòng nhập số lượng hợp lệ!");
+      return;
+    }
+
+    let finalTransactionQty = numQty;
+
+    // Nếu nghiệp vụ là KIỂM_KHO: Tính toán lượng chênh lệch (Delta) để gửi lên API
+    if (actionType === "KIỂM_KHO") {
+      const currentStock = selectedItem?.stockQuantity || 0;
+      finalTransactionQty = numQty - currentStock;
+
+      if (finalTransactionQty === 0) {
+        alert(
+          "Số lượng thực tế bằng khớp với số tồn hệ thống. Không cần tạo phiếu điều chỉnh!",
+        );
+        return;
+      }
+    }
+
+    const transactionPayload = {
+      ingredientId: Number(selectedItem.id),
+      quantity: Number(finalTransactionQty),
+      note:
+        note ||
+        `${actionType === "NHẬP" ? "Nhập thêm hàng" : "Điều chỉnh sau kiểm kho"} từ giao diện quản lý`,
+    };
+
+    try {
+      await createIngredientTransaction(
+        userLogin?.accessToken,
+        transactionPayload,
+        axiosJWT,
+      );
+      await loadIngredients();
+
+      alert("Cập nhật dữ liệu thẻ kho thành công! 🚀");
+      setActiveModal(null);
+    } catch (error) {
+      console.error("Lỗi khi tạo giao dịch kho:", error);
+      alert("Thao tác thất bại, vui lòng kiểm tra lại kết nối API hệ thống.");
+    }
+  };
+
+  const handleOpenHistory = async (item) => {
+    setSelectedItem(item);
+    setActiveModal("history");
+    setIsHistoryLoading(true);
+    setHistoryLog([]); 
+
+    try {
+      const res = await getHistoryIngredientTransaction(
+        userLogin?.accessToken,
+        item.id,
+        axiosJWT,
+      );
+      if (res) {
+        setHistoryLog(res);
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Không thể tải lịch sử giao dịch của vật tư này.");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
   return (
     <div className="p-8 space-y-6 max-w-7xl w-full mx-auto relative text-slate-700">
       <InventoryHeader
@@ -243,14 +289,10 @@ export default function InventoryManager() {
         filteredItems={filteredItems}
         getStockStatus={getStockStatus}
         onOpenAdjust={handleOpenAdjust}
-        onOpenHistory={(item) => {
-          setSelectedItem(item);
-          setActiveModal("history");
-        }}
+        onOpenHistory={handleOpenHistory}
         onDelete={handleDeleteItem}
       />
 
-      {/* 4. Truyền formValues, setFormValues và hàm handleSaveIngredient xuống Modal */}
       {activeModal === "add" && (
         <AddItemModal
           categories={categories}
@@ -261,13 +303,14 @@ export default function InventoryManager() {
         />
       )}
 
+      {/* 3. Truyền hàm xử lý sự kiện qua prop onSave xuống AdjustStockModal */}
       {activeModal === "adjust" && selectedItem && (
         <AdjustStockModal
           actionType={actionType}
           selectedItem={selectedItem}
           setSelectedItem={setSelectedItem}
-          inventoryItems={inventoryItems}
-          setInventoryItems={setInventoryItems}
+          inventoryItems={filteredItems}
+          onSave={handleSaveAdjustStock}
           onClose={() => setActiveModal(null)}
         />
       )}
@@ -275,7 +318,8 @@ export default function InventoryManager() {
       {activeModal === "history" && selectedItem && (
         <HistoryLogModal
           selectedItem={selectedItem}
-          mockHistoryLog={mockHistoryLog}
+          historyLog={historyLog}
+          isLoading={isHistoryLoading}
           onClose={() => setActiveModal(null)}
         />
       )}
