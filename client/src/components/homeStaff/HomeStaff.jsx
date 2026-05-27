@@ -13,10 +13,10 @@ export default function HomeStaff() {
 
   // 1. Quản lý State Nghiệp vụ
   const [currentCategory, setCurrentCategory] = useState("Burger");
-  const [selectedTable, setSelectedTable] = useState(null); // Lưu thông tin bàn đang chọn (nếu ăn tại chỗ)
-  const [isTakeaway, setIsTakeaway] = useState(false); // Flag phân loại đơn hàng (Tại bàn / Mang về)
-  const [discountInput, setDiscountInput] = useState(0); // Tiền giảm giá nhập thủ công tại quầy
-  const [paymentMethod, setPaymentMethod] = useState("cash"); // Phương thức thanh toán đang chọn
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [isTakeaway, setIsTakeaway] = useState(false);
+  const [discountInput, setDiscountInput] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
 
   useEffect(() => {
     if (!userLogin) {
@@ -26,81 +26,178 @@ export default function HomeStaff() {
     }
   }, [userLogin, navigate]);
 
-  // Hàm xử lý đăng xuất hệ thống
   const handleLogout = () => {
     logoutUser(userLogin?.accessToken, dispatch, axiosJWT);
   };
 
-  // State Giỏ hàng thực tế tương tác được khi click chọn món
-  const [cart, setCart] = useState([
-    { id: "B1", name: "Burger Bò Phô Mai", price: 65000, quantity: 2 },
-    { id: "D1", name: "Coca Cola Pepsi Size M", price: 20000, quantity: 2 },
-  ]);
+  // [ĐỒNG BỘ] Giỏ hàng ban đầu dùng ID kiểu số (BIGINT) và cấu trúc chuẩn tương tự DB
+  const [cart, setCart] = useState([]);
 
-  // 2. Dữ liệu Danh mục & Món ăn (Ánh xạ chuẩn từ categories & products trong DB)
-  const categories = ["Burger", "Gà rán", "Đồ uống"];
+  // [ĐỒNG BỘ] Danh mục ánh xạ từ bảng categories
+  const categories = ["Burger", "Gà rán", "Món phụ", "Đồ uống", "Tráng miệng"];
 
   const menuItems = {
     Burger: [
       {
         id: 1,
-        name: "Burger Bò Phô Mai",
+        name: "Burger Bò Phô Mai Double",
         price: 65000,
-        image: "🍔",
-        tag: "Bán chạy",
+        image_url:
+          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500",
+        is_available: true,
       },
-      { id: 2, name: "Burger Gà Giòn Cay", price: 59000, image: "🍗🍔" },
-      { id: 3, name: "Burger Tôm Hoàng Gia", price: 75000, image: "🍤🍔" },
+      {
+        id: 2,
+        name: "Burger Tôm Sốt Tartar",
+        price: 55000,
+        image_url:
+          "https://images.unsplash.com/photo-1525059696034-4967a8e1dca2?w=500",
+        is_available: true,
+      },
+      {
+        id: 3,
+        name: "Burger Gà Giòn Cay",
+        price: 49000,
+        image_url:
+          "https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=500",
+        is_available: true,
+      },
     ],
     "Gà rán": [
       {
         id: 4,
-        name: "Gà Rán Sốt Cay (1 Miếng)",
+        name: "Gà Rán Sốt Cay Thượng Hạng",
         price: 45000,
-        image: "🍗",
-        tag: "Hot",
+        image_url:
+          "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500",
+        is_available: true,
       },
-      { id: 5, name: "Gà Rán Truyền Thống", price: 42000, image: "🍖" },
+      {
+        id: 5,
+        name: "Combo 2 Miếng Gà Giòn Truyền Thống",
+        price: 79000,
+        image_url:
+          "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?w=500",
+        is_available: true,
+      },
+      {
+        id: 6,
+        name: "Gà Popcorn Lắc Phô Mai",
+        price: 39000,
+        image_url:
+          "https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=500",
+        is_available: true,
+      },
+    ],
+    "Món phụ": [
+      {
+        id: 7,
+        name: "Khoai Tây Chiên Lắc Phô Mai",
+        price: 30000,
+        image_url:
+          "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500",
+        is_available: true,
+      },
+      {
+        id: 8,
+        name: "Khoai Tây Múi Cau Chiên Giòn",
+        price: 32000,
+        image_url:
+          "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=500",
+        is_available: true,
+      },
+      {
+        id: 9,
+        name: "Cá Viên Chiên Sốt Mắm Tỏi",
+        price: 25000,
+        image_url: "https://placehold.co/500x500?text=Ca+Vien+Chien",
+        is_available: true,
+      },
     ],
     "Đồ uống": [
-      { id: 6, name: "Coca Cola Pepsi Size M", price: 20000, image: "🥤" },
-      { id: 7, name: "Trà Đào Đốt Sả", price: 35000, image: "🍹" },
+      {
+        id: 10,
+        name: "Trà Sữa Trân Châu Size L",
+        price: 35000,
+        image_url:
+          "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=500",
+        is_available: false,
+      },
+      {
+        id: 11,
+        name: "Coca Cola Tươi Pepsi",
+        price: 15000,
+        image_url:
+          "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500",
+        is_available: true,
+      },
+      {
+        id: 12,
+        name: "Trà Đào Đốt Sả Hạt Chia",
+        price: 29000,
+        image_url:
+          "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500",
+        is_available: true,
+      },
+    ],
+    "Tráng miệng": [
+      {
+        id: 13,
+        name: "Kem Tươi Vani Sốt Dâu",
+        price: 15000,
+        image_url:
+          "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500",
+        is_available: true,
+      },
+      {
+        id: 14,
+        name: "Bánh Khoai Môn Chiên Phồng",
+        price: 20000,
+        image_url: "https://placehold.co/500x500?text=Banh+Khoai+Mon",
+        is_available: true,
+      },
     ],
   };
 
-  // 3. Dữ liệu Sơ đồ bàn (Ánh xạ từ bảng dining_tables)
+  // 3. Sơ đồ bàn (Đã đồng bộ dữ liệu mẫu khớp DB)
   const [tables] = useState([
-    { id: 1, table_number: "Bàn 01", status: "occupied", total: 170000 },
+    { id: 1, table_number: "Bàn 01", status: "occupied", total: 160000 },
     { id: 2, table_number: "Bàn 02", status: "available", total: 0 },
-    { id: 3, table_number: "Bàn 03", status: "occupied", total: 85000 },
+    { id: 3, table_number: "Bàn 03", status: "occupied", total: 74000 },
     { id: 4, table_number: "Bàn 04", status: "available", total: 0 },
-    { id: 5, table_number: "Bàn 05", status: "available", total: 0 },
   ]);
 
-  // 4. Hàng đợi nhà bếp (Ánh xạ từ trạng thái order_status = 'pending'/'processing')
+  // [ĐỒNG BỘ] Trạng thái bếp mô phỏng cấu trúc quan hệ thực tế gồm mảng chi tiết order_items thay vì viết chuỗi dính liền
   const [kitchenOrders, setKitchenOrders] = useState([
     {
-      id: "ĐH-8812",
+      id: 1, // BIGINT
       table_number: "Bàn 01",
-      items: "2x Burger Bò, 2x Coca",
+      items: [
+        { name: "Burger Bò Phô Mai Double", quantity: 2 },
+        { name: "Coca Cola Tươi Pepsi", quantity: 2 },
+      ],
       time: "10 phút trước",
     },
     {
-      id: "ĐH-8813",
+      id: 2,
       table_number: "Bàn 03",
-      items: "1x Gà Rán Sốt Cay, 1x Trà Đào",
+      items: [
+        { name: "Gà Rán Sốt Cay Thượng Hạng", quantity: 1 },
+        { name: "Trà Đào Đốt Sả Hạt Chia", quantity: 1 },
+      ],
       time: "5 phút trước",
     },
     {
-      id: "ĐH-8814",
+      id: 3,
       table_number: "Mang về",
-      items: "3x Burger Gà Giòn Cay",
+      items: [{ name: "Burger Gà Giòn Cay", quantity: 3 }],
       time: "Vừa xong",
     },
   ]);
 
-  // Thêm món vào giỏ hàng
+  // Thêm món vào giỏ hàng (Đã sửa logic so sánh kiểu số của product.id)
   const handleAddToCart = (product) => {
+    if (!product.is_available) return; // Chặn nếu món ăn hết hàng
     const existingItem = cart.find((item) => item.id === product.id);
     if (existingItem) {
       setCart(
@@ -123,25 +220,23 @@ export default function HomeStaff() {
     }
   };
 
-  // Giải phóng hàng đợi nhà bếp khi bấm hoàn thành
   const handleCompleteOrder = (id) => {
     setKitchenOrders(kitchenOrders.filter((order) => order.id !== id));
   };
 
-  // 5. Thuật toán tính toán tài chính hóa đơn (Khớp hoàn toàn các cột cấu trúc bảng orders)
+  // Tính toán tài chính
   const subTotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const taxAmount = subTotal * 0.08; // Thuế GTGT 8%
+  const taxAmount = subTotal * 0.08;
   const discountAmount = Number(discountInput) || 0;
   const totalAmount = Math.max(0, subTotal + taxAmount - discountAmount);
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-      {/* CỘT 1: KHU VỰC BÁN HÀNG & TRẠNG THÁI BÀN (Chiếm 2/3 màn hình) */}
+      {/* CỘT 1: KHU VỰC BÁN HÀNG & TRẠNG THÁI BÀN */}
       <div className="flex-1 flex flex-col p-6 space-y-6 overflow-y-auto">
-        {/* Header Nhân viên sáng sủa */}
         <header className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
@@ -158,7 +253,6 @@ export default function HomeStaff() {
               </p>
               <p className="text-xs text-slate-400">Thu ngân chính</p>
             </div>
-            {/* Nút Đăng xuất thiết kế mới theo yêu cầu */}
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 text-xs font-bold px-4 py-2.5 rounded-xl transition-all border border-slate-200 hover:border-rose-200"
@@ -169,12 +263,12 @@ export default function HomeStaff() {
           </div>
         </header>
 
-        {/* 1.1 Sơ đồ bàn trực quan */}
+        {/* Sơ đồ bàn */}
         <section className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <h2 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">
             📍 Trạng thái bàn ăn trực quan
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {tables.map((table) => (
               <div
                 key={table.id}
@@ -208,9 +302,8 @@ export default function HomeStaff() {
           </div>
         </section>
 
-        {/* 1.2 Danh mục món ăn & Thực đơn */}
+        {/* Danh mục món ăn & Thực đơn */}
         <section className="flex-1 flex flex-col min-h-0 space-y-4">
-          {/* Thanh chuyển danh mục */}
           <div className="flex gap-2 overflow-x-auto pb-1">
             {categories.map((cat) => (
               <button
@@ -227,33 +320,89 @@ export default function HomeStaff() {
             ))}
           </div>
 
-          {/* Lưới hiển thị danh sách món ăn */}
+          {/* Danh sách món */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto pr-1 flex-1">
             {(menuItems[currentCategory] || []).map((item) => (
               <div
                 key={item.id}
-                onClick={() => handleAddToCart(item)}
-                className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col justify-between hover:border-amber-500 hover:shadow-md transition-all cursor-pointer relative group"
+                onClick={() => item.is_available && handleAddToCart(item)}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-300 bg-white
+    ${
+      item.is_available
+        ? "border-slate-100 shadow-sm hover:-translate-y-1 hover:border-amber-200 hover:shadow-xl cursor-pointer"
+        : "border-slate-200 bg-slate-50/50 cursor-not-allowed"
+    }`}
               >
-                {item.tag && (
-                  <span className="absolute top-2 right-2 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
-                    {item.tag}
+                {/* Nhãn trạng thái: Hết hàng hoặc Ưu đãi (nếu có) */}
+                {!item.is_available ? (
+                  <span className="absolute top-3 right-3 z-10 bg-slate-900/80 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    Hết hàng
                   </span>
-                )}
-                <div className="text-4xl my-2 bg-slate-50 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform border border-slate-100">
-                  {item.image}
-                </div>
-                <div className="mt-2">
-                  <h4 className="font-bold text-sm text-slate-800 group-hover:text-amber-600 transition-colors">
-                    {item.name}
-                  </h4>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-black text-slate-900 text-base">
-                      {item.price.toLocaleString("vi-VN")} đ
+                ) : (
+                  /* Bạn có thể thêm badge "Bán chạy" hoặc "New" ở đây để tăng tính sinh động */
+                  item.is_popular && (
+                    <span className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide shadow-sm animate-pulse">
+                      Popular
                     </span>
-                    <button className="bg-slate-100 text-slate-800 group-hover:bg-amber-500 group-hover:text-slate-950 w-8 h-8 rounded-lg font-bold text-lg flex items-center justify-center transition-colors">
-                      +
-                    </button>
+                  )
+                )}
+
+                {/* KHU VỰC HÌNH ẢNH */}
+                <div className="w-full h-44 bg-slate-100 overflow-hidden relative">
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105
+        ${!item.is_available ? "grayscale opacity-50" : ""}`}
+                  />
+                  {/* Lớp overlay mờ nhẹ khi hover giúp ảnh có chiều sâu hơn */}
+                  {item.is_available && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  )}
+                </div>
+
+                {/* KHU VỰC THÔNG TIN */}
+                <div className="p-4 flex flex-col justify-between flex-1">
+                  <div>
+                    <h4 className="font-semibold text-base text-slate-800 group-hover:text-amber-600 transition-colors duration-300 line-clamp-2 min-h-[48px] leading-snug">
+                      {item.name}
+                    </h4>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-4 pt-2 border-t border-slate-50">
+                    <div className="flex flex-col">
+                      <span
+                        className={`font-extrabold text-lg ${item.is_available ? "text-slate-900" : "text-slate-400 line-through text-sm"}`}
+                      >
+                        {item.price.toLocaleString("vi-VN")}{" "}
+                        <span className="text-xs font-medium">đ</span>
+                      </span>
+                    </div>
+
+                    {item.is_available && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Ngăn sự kiện click bị trùng với click của cả Card
+                          handleAddToCart(item);
+                        }}
+                        className="bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white w-9 h-9 rounded-xl font-bold text-xl flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 active:scale-95"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2.5}
+                          stroke="currentColor"
+                          className="w-5 h-5"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 4.5v15m7.5-7.5h-15"
+                          />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -262,9 +411,9 @@ export default function HomeStaff() {
         </section>
       </div>
 
-      {/* CỘT 2: QUẢN LÝ ĐƠN HÀNG CHỜ CHẾ BIẾN & THANH TOÁN (Nền trắng chia khối) */}
+      {/* CỘT 2: QUẢN LÝ HÀNG ĐỢI BẾP & THANH TOÁN */}
       <div className="w-96 bg-white border-l border-slate-200 flex flex-col h-full shadow-lg">
-        {/* Phần 2.1: Hàng đợi bếp - Đơn hàng đang chờ xử lý */}
+        {/* Hàng đợi nhà bếp */}
         <div className="p-4 border-b border-slate-200 flex-1 flex flex-col min-h-0 bg-slate-50/50">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-3">
             ⏳ Đơn chờ chế biến (Bếp)
@@ -286,7 +435,7 @@ export default function HomeStaff() {
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-mono text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-                      {order.id}
+                      ĐH #{order.id}
                     </span>
                     <span className="text-[11px] text-slate-400">
                       {order.time}
@@ -295,14 +444,23 @@ export default function HomeStaff() {
                   <div className="text-sm font-black text-slate-800">
                     {order.table_number}
                   </div>
-                  <div className="text-xs text-slate-500 line-clamp-2 bg-slate-50 p-2 rounded-lg">
-                    {order.items}
+
+                  {/* [ĐỒNG BỘ] Vòng lặp map xuất mảng danh sách món ăn từ API chuẩn cấu trúc */}
+                  <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg space-y-1">
+                    {order.items.map((it, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <span>• {it.name}</span>
+                        <span className="font-bold text-slate-800">
+                          x{it.quantity}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                   <button
                     onClick={() => handleCompleteOrder(order.id)}
-                    className="w-full mt-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-lg transition-colors shadow-sm shadow-emerald-600/10"
+                    className="w-full mt-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-lg transition-colors shadow-sm"
                   >
-                    ✓ Đã xong (Giao đồ cho khách)
+                    ✓ Đã xong (Giao đồ)
                   </button>
                 </div>
               ))
@@ -310,13 +468,12 @@ export default function HomeStaff() {
           </div>
         </div>
 
-        {/* Phần 2.2: Khung Tính tiền Thanh toán tại quầy */}
+        {/* Khung Hóa đơn & Thanh toán */}
         <div className="p-5 bg-white border-t border-slate-200 space-y-4">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             🧾 Hóa đơn xuất quầy
           </h3>
 
-          {/* Chọn Loại hình phục vụ để map dining_table_id */}
           <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl text-xs font-bold">
             <button
               onClick={() => setIsTakeaway(false)}
@@ -336,7 +493,6 @@ export default function HomeStaff() {
             </button>
           </div>
 
-          {/* Danh sách vật phẩm trong hóa đơn hiện hành */}
           <div className="max-h-24 overflow-y-auto space-y-2 pr-1 text-xs text-slate-600 border-b border-slate-100 pb-2">
             {cart.map((c, i) => (
               <div key={i} className="flex justify-between items-center">
@@ -350,7 +506,6 @@ export default function HomeStaff() {
             ))}
           </div>
 
-          {/* Khu vực tính toán số liệu tài chính tài chính */}
           <div className="space-y-2 text-xs text-slate-500">
             <div className="flex justify-between">
               <span>Tạm tính (Subtotal):</span>
@@ -364,7 +519,6 @@ export default function HomeStaff() {
                 {taxAmount.toLocaleString("vi-VN")} đ
               </span>
             </div>
-            {/* Input giảm giá cấu trúc khớp trường discount_amount */}
             <div className="flex justify-between items-center">
               <span>Giảm giá (đ):</span>
               <input
@@ -383,7 +537,6 @@ export default function HomeStaff() {
             </div>
           </div>
 
-          {/* Phương thức thanh toán (Khớp ENUM payment_method) */}
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button
               onClick={() => setPaymentMethod("cash")}
@@ -407,7 +560,6 @@ export default function HomeStaff() {
             </button>
           </div>
 
-          {/* Chốt đơn và Đẩy hóa đơn in */}
           <button className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm py-3 rounded-xl transition-colors shadow-md shadow-amber-500/10">
             XÁC NHẬN IN HÓA ĐƠN
           </button>

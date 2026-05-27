@@ -12,6 +12,7 @@ import { getListIngredientCategory } from "../../../callAPI/categoriesAPI";
 import {
   getListIngredient,
   createIngredient,
+  deleteIngredient,
 } from "../../../callAPI/ingredientAPI";
 import {
   createIngredientTransaction,
@@ -150,13 +151,31 @@ export default function InventoryManager() {
     setActiveModal("adjust");
   };
 
-  const handleDeleteItem = (id, name) => {
+  const handleDeleteItem = async (id, name) => {
     if (
       window.confirm(
         `Bạn có chắc chắn muốn xóa nguyên liệu "${name}" ra khỏi danh mục kho không?\nHành động này không thể hoàn tác.`,
       )
     ) {
-      setInventoryItems((prev) => prev.filter((item) => item.id !== id));
+      try {
+        const res = await deleteIngredient(
+          userLogin?.accessToken,
+          id,
+          axiosJWT,
+        );
+
+        if (res) {
+          alert(`Xóa nguyên liệu "${name}" thành công! 🗑️`);
+          await loadIngredients();
+        } else {
+          alert(res.message || "Xóa thất bại, hệ thống gặp sự cố.");
+        }
+      } catch (error) {
+        console.error("Lỗi trong quá trình xóa vật tư:", error);
+        alert(
+          "Không thể xóa vật tư này. Vui lòng kiểm tra lại ràng buộc dữ liệu (ví dụ: nguyên liệu đã có trong định lượng món ăn).",
+        );
+      }
     }
   };
 
@@ -249,7 +268,7 @@ export default function InventoryManager() {
     setSelectedItem(item);
     setActiveModal("history");
     setIsHistoryLoading(true);
-    setHistoryLog([]); 
+    setHistoryLog([]);
 
     try {
       const res = await getHistoryIngredientTransaction(

@@ -27,3 +27,15 @@ export const createIngredient = async (
     throw error;
   }
 };
+
+export const deleteIngredient = async (accessToken, id, axiosJWT) => {
+  try {
+    const res = await axiosJWT.delete(`${apiName}/ingredients/${id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Lỗi tại API deleteIngredient:", error);
+    throw error;
+  }
+};

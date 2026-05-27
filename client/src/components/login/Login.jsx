@@ -151,7 +151,7 @@ export default function Login() {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  placeholder="username (VD: ithanh)..."
+                  placeholder="Mã nhân viên (VD: NV)..."
                   className="w-full bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 pl-11 pr-4 py-4 rounded-2xl text-sm focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all font-medium"
                 />
               </div>
