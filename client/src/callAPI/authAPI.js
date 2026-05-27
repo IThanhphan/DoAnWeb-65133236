@@ -10,6 +10,7 @@ export const loginUser = async (user, dispatch, navigate) => {
   const decodeToken = jwtDecode(res.data.result.accessToken);
   const currentUser = {
     ...res.data.result,
+    username: decodeToken.sub,
     role: decodeToken.role,
   };
   dispatch(login(currentUser));
