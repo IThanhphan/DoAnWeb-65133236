@@ -419,12 +419,12 @@ export default function HistoryManager() {
             </div>
 
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex gap-2">
-              <button
+              {/* <button
                 onClick={() => window.print()}
                 className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
               >
                 🖨️ In Hóa Đơn
-              </button>
+              </button> */}
               <button
                 onClick={() => setSelectedTx(null)}
                 className="flex-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-xs py-2.5 rounded-xl transition-all"

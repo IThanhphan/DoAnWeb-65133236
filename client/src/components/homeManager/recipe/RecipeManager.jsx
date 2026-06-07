@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export default function RecipeManager() {
-  // 1. Chuẩn hóa Products: id (Long), đồng bộ camelCase thuộc tính trùng với JPA Entity
+  // 1. Danh sách Products
   const [products, setProducts] = useState([
     {
       id: 1,
@@ -29,7 +29,7 @@ export default function RecipeManager() {
     },
   ]);
 
-  // 2. Danh sách nguyên liệu trong kho (Bảng ingredients)
+  // 2. Danh sách nguyên liệu trong kho
   const availableIngredients = [
     { id: 1, name: "Thịt bò và vụn bò băm", unit: "kg" },
     { id: 2, name: "Vỏ bánh mì Burger mè", unit: "cái" },
@@ -39,11 +39,10 @@ export default function RecipeManager() {
     { id: 6, name: "Xà lách lolo xanh", unit: "kg" },
   ];
 
-  // State quản lý món ăn đang được chọn để làm công thức
+  // State quản lý món ăn đang được chọn
   const [selectedProduct, setSelectedProduct] = useState(products[0]);
 
-  // [TỐI ƯU]: State lưu danh sách công thức chỉ chứa ID và định lượng (Khớp chuẩn bảng recipe_items)
-  // Các thông tin bổ trợ như name, unit sẽ được lookup tự động từ mảng availableIngredients
+  // State lưu danh sách công thức hiện tại
   const [recipeItems, setRecipeItems] = useState([
     { ingredientId: 2, quantityRequired: 1 },
     { ingredientId: 3, quantityRequired: 2 },
@@ -56,7 +55,6 @@ export default function RecipeManager() {
   // Hàm xử lý khi chọn một sản phẩm khác
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
-    // Thực tế: Tương đương GET /api/v1/recipes/product/{id}
     if (product.id === 1) {
       setRecipeItems([
         { ingredientId: 2, quantityRequired: 1 },
@@ -67,14 +65,13 @@ export default function RecipeManager() {
     }
   };
 
-  // Thêm nguyên liệu vào danh sách định lượng hiện tại
+  // Thêm nguyên liệu vào công thức
   const handleAddIngredient = (e) => {
     e.preventDefault();
     if (!addingIngredientId || !addingQuantity) return;
 
     const targetId = parseInt(addingIngredientId);
 
-    // Kiểm tra trùng lặp
     const isExisted = recipeItems.some(
       (item) => item.ingredientId === targetId,
     );
@@ -97,7 +94,7 @@ export default function RecipeManager() {
     setAddingQuantity("");
   };
 
-  // Cập nhật nhanh số lượng tiêu hao ngay trên bảng dữ liệu
+  // Cập nhật nhanh số lượng tiêu hao
   const handleQuantityChange = (ingredientId, value) => {
     const updated = recipeItems.map((item) => {
       if (item.ingredientId === ingredientId) {
@@ -111,14 +108,14 @@ export default function RecipeManager() {
     setRecipeItems(updated);
   };
 
-  // Xóa nguyên liệu ra khỏi công thức
+  // Xóa 1 dòng nguyên liệu ra khỏi công thức
   const handleRemoveIngredient = (ingredientId) => {
     setRecipeItems(
       recipeItems.filter((item) => item.ingredientId !== ingredientId),
     );
   };
 
-  // [CHUẨN HÓA]: Gửi Payload sạch về cho Spring Boot REST Controller
+  // Gửi Payload lưu công thức về Backend
   const handleSaveRecipe = () => {
     const payload = {
       productId: selectedProduct.id,
@@ -128,7 +125,6 @@ export default function RecipeManager() {
       })),
     };
 
-    // Payload này khớp 100% với cấu trúc RecipeRequestDTO bên Java Backend
     console.log("POST /api/v1/recipes", payload);
     alert(`Đã lưu công thức cho món: ${selectedProduct.name}`);
 
@@ -137,6 +133,35 @@ export default function RecipeManager() {
         p.id === selectedProduct.id ? { ...p, hasRecipe: true } : p,
       ),
     );
+    // Cập nhật lại state của object đang select để đồng bộ UI
+    setSelectedProduct({ ...selectedProduct, hasRecipe: true });
+  };
+
+  // --- THÊM MỚI: HÀM XỬ LÝ XÓA TOÀN BỘ CÔNG THỨC ---
+  const handleDeleteRecipe = () => {
+    if (
+      window.confirm(
+        `Bạn có chắc chắn muốn xóa TOÀN BỘ công thức định lượng của món "${selectedProduct.name}" không? Hành động này không thể hoàn tác.`,
+      )
+    ) {
+      // Thực tế tương đương gửi request: DELETE /api/v1/recipes/product/{id}
+      console.log("DELETE /api/v1/recipes/product/" + selectedProduct.id);
+
+      // 1. Xóa sạch dữ liệu nguyên liệu trên màn hình chi tiết
+      setRecipeItems([]);
+
+      // 2. Cập nhật lại danh sách sản phẩm (đổi hasRecipe sang false)
+      setProducts(
+        products.map((p) =>
+          p.id === selectedProduct.id ? { ...p, hasRecipe: false } : p,
+        ),
+      );
+
+      // 3. Cập nhật trạng thái item đang select hiện tại
+      setSelectedProduct({ ...selectedProduct, hasRecipe: false });
+
+      alert(`Đã xóa công thức của món: ${selectedProduct.name}`);
+    }
   };
 
   return (
@@ -279,7 +304,6 @@ export default function RecipeManager() {
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                     {recipeItems.map((item) => {
-                      // Lookup tìm thông tin chi tiết của nguyên liệu từ mảng gốc (Giống DB JOIN)
                       const details =
                         availableIngredients.find(
                           (ing) => ing.id === item.ingredientId,
@@ -330,10 +354,23 @@ export default function RecipeManager() {
             )}
           </div>
 
-          <div className="border-t border-slate-100 pt-4 mt-4 flex justify-end">
+          {/* --- KHU VỰC ĐƯỢC CHỈNH SỬA: NÚT THAO TÁC LUỒNG ĐỒNG BỘ --- */}
+          <div className="border-t border-slate-100 pt-4 mt-4 flex justify-end gap-3">
+            {/* Nút Xóa công thức chỉ hiển thị khi sản phẩm hiện tại đã có dữ liệu công thức */}
+            {selectedProduct?.hasRecipe && (
+              <button
+                type="button"
+                onClick={handleDeleteRecipe}
+                className="bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-rose-600 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <span>🗑️</span> Xóa công thức
+              </button>
+            )}
+
             <button
+              type="button"
               onClick={handleSaveRecipe}
-              className="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-colors"
+              className="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-bold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm"
             >
               Lưu công thức món ăn
             </button>
