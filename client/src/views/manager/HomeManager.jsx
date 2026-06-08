@@ -4,15 +4,15 @@ import { useNavigate, Routes, Route, Navigate } from "react-router-dom";
 import { createAxiosJWT } from "../../callAPI/createInstance";
 import { login } from "../../redux/userSlice";
 import { logoutUser } from "../../callAPI/authAPI";
-import Sidebar from "./layout/Sidebar";
-import Header from "./layout/Header";
-import StatsGrid from "./dashboard/StatsGrid";
-import DashboardContent from "./dashboard/DashboardContent";
-import MenuManager from "./menu/MenuManager";
-import InventoryManager from "./inventory/InventoryManager";
-import StaffManager from "./staff/StaffManager";
-import HistoryManager from "./history/HistoryManager";
-import RecipeManager from "./recipe/RecipeManager";
+import Sidebar from "../../components/homeManager/layout/Sidebar";
+import Header from "../../components/homeManager/layout/Header";
+import StatsGrid from "../../components/homeManager/dashboard/StatsGrid";
+import DashboardContent from "../../components/homeManager/dashboard/DashboardContent";
+import MenuManager from "../../components/homeManager/menu/MenuManager";
+import InventoryManager from "../../components/homeManager/inventory/InventoryManager";
+import StaffManager from "../../components/homeManager/staff/StaffManager";
+import HistoryManager from "../../components/homeManager/history/HistoryManager";
+import RecipeManager from "../../components/homeManager/recipe/RecipeManager";
 
 export default function HomeManager() {
   const userLogin = useSelector((state) => state.user?.currentUser);
